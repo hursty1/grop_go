@@ -116,7 +116,7 @@ func get_results(results []string, config Config, filename string){
 		match := line[start : start+len(config.Query)]
 		after := line[start+len(config.Query):]
 		if config.Filename{
-			fmt.Print(filename + ": ")
+			fmt.Print(filename + ":")
 		}
 		fmt.Print(before + Green + match + Reset + after)
 	}
@@ -125,12 +125,14 @@ func get_results(results []string, config Config, filename string){
 func Search(contents[] byte, query string) ([]string, error) {
 	
 	var results []string
-	
+	var count int = 0
 	for _, line := range strings.Split(string(contents), "\n") {
 		// fmt.Println("line: ", line)
 		if strings.Contains(line, query) {
-			results = append(results, strings.TrimSpace(line))
+			line := fmt.Sprintf("%v:%v", count, strings.TrimSpace(line))
+			results = append(results, line)
 		}
+		count ++ 
 	}
 	
 
@@ -140,14 +142,17 @@ func Search(contents[] byte, query string) ([]string, error) {
 func CaseinSensitiveSearch(contents[] byte, query string) ([]string, error) { 
 	
 	var results []string
-	
+	var count int = 0
 	for _, line := range strings.Split(string(contents), "\n") {
 		// fmt.Println("line: ", line)
 		lower_line := strings.ToLower(line)
 		lower_query := strings.ToLower(query)
+		line := fmt.Sprintf("%v: %v", count, strings.TrimSpace(line))
+		// fmt.Print("LINE: ", count)
 		if strings.Contains(lower_line, lower_query) {
-			results = append(results, strings.TrimSpace(line))
+			results = append(results, line)
 		}
+		count ++
 	}
 	
 
