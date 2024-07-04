@@ -15,7 +15,9 @@ supports wild card for <file> like: *.json or *.go
 has intergrated tests >> go test 
     Testing the string searching
 
-
+go build
+cp .\grop.exe c:\utils\grop.exe
+edit path variable and add C:\utilis\ as a folder restart windows (if already added restart terminal)
 
 TODO: 
     Add Line number
