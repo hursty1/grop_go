@@ -1,2 +1,3 @@
 *.exe
 *.txt
+deploy_script.ps1

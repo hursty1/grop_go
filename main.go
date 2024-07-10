@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"grop/config"
+	"os"
+	"strings"
 )
 
 func main() {
@@ -15,18 +17,30 @@ func main() {
 	flag.BoolVar(ignoreCase, "i", false, "Ignore case when searching")
 	flag.BoolVar(filename, "f", false, "Print filename")
 	flag.BoolVar(recursive, "r", false, "Recursive directory searching")
-
-	flag.Parse()
-
+	args := os.Args[1:]
+	flags := []string{}
+	positional := []string{}
+	for _, arg := range args {
+		// fmt.Println(arg)
+		if strings.HasPrefix(arg, "-") {
+			flags = append(flags, arg)
+		} else {
+			positional = append(positional, arg)
+		}
+	}
+	// fmt.Println(flags)
+	// fmt.Println(positional)
+	// flag.Parse() //replaced by line below
+	flag.CommandLine.Parse(flags)
 	// Positional arguments
-	args := flag.Args()
+	// args := flag.Args()
 	if len(args) < 2 {
 		fmt.Println("Usage: go run main.go <query> <file> [--ignore-case] [--filename] [--recursive]")
 		return
 	}
-	query := args[0]
-	file := args[1]
-	// fmt.Println(*ignoreCase)
+	query := positional[0]
+	file := positional[1]
+	// fmt.Println(*filename)
 	
 	configArgs := config.Args{
 		Query:      query,
