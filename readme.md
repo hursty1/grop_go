@@ -22,3 +22,8 @@ edit path variable and add C:\utilis\ as a folder restart windows (if already ad
 TODO: 
     Add Line number
     
+For this convert the per line data into storing the. What format (array of struts )
+    FileName / path
+    line number
+    text
+    

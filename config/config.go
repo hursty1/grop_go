@@ -12,6 +12,7 @@ type Args struct {
     IgnoreCase bool
     Filename   bool
     Recursive  bool
+	LineNumber bool
 }
 type Config struct {
     Query      string
@@ -19,6 +20,7 @@ type Config struct {
     IgnoreCase bool
     Filename   bool
     Recursive  bool
+	LineNumber bool
 }
 
 
@@ -29,9 +31,16 @@ func BuildConfig(args Args) (Config, error) {
         IgnoreCase: args.IgnoreCase,
         Filename:   args.Filename,
         Recursive:  args.Recursive,
+		LineNumber: args.LineNumber,
     }
 	// fmt.Println(config)
     return config, nil
+}
+
+type Matches struct {
+	LineNumber int
+	FileName string
+	LineText string
 }
 
 func Run(config Config) (error) {
@@ -77,21 +86,21 @@ func Run(config Config) (error) {
 
 func read_results(files []string, config Config) (error) {
 	for _, file := range files {
-		var result []string
+		var result []Matches
 		var err error
 		contents, err := os.ReadFile(file)
 		if err != nil {
 			return err
 		}
 		if config.IgnoreCase {
-			result, err = CaseinSensitiveSearch(contents, config.Query)
+			result, err = CaseinSensitiveSearch(contents, config.Query, file)
 		} else {
-			result, err = Search(contents, config.Query)
+			result, err = Search(contents, config.Query, file)
 		}
 		if err != nil{
 			return err
 		}
-		get_results(result, config, file)
+		get_results(result, config)
 
 	}
 
@@ -101,36 +110,42 @@ func read_results(files []string, config Config) (error) {
 	return nil
 }
 
-func get_results(results []string, config Config, filename string){
+func get_results(results []Matches, config Config){
 	for _, line := range results {
-		fmt.Println()
+		// fmt.Println()
 		var start int
 		if config.IgnoreCase{
-			start = strings.Index(strings.ToLower(line), strings.ToLower(config.Query))
+			start = strings.Index(strings.ToLower(line.LineText), strings.ToLower(config.Query))
 		} else {
-			start = strings.Index(line, config.Query)
+			start = strings.Index(line.LineText, config.Query)
 
 		}
 		
-		before := line[:start]
-		match := line[start : start+len(config.Query)]
-		after := line[start+len(config.Query):]
+		before := line.LineText[:start]
+		match := line.LineText[start : start+len(config.Query)]
+		after := line.LineText[start+len(config.Query):]
 		if config.Filename{
-			fmt.Print(filename + ":")
+			fmt.Print(line.FileName + ":")
+		}
+		if (config.LineNumber){
+			// fmt.Print(string(line.LineNumber) + ":")
+			fmt.Print(fmt.Sprintf("%v:", line.LineNumber))
 		}
 		fmt.Print(before + Green + match + Reset + after)
+		fmt.Println("")
 	}
 }
 
-func Search(contents[] byte, query string) ([]string, error) {
+func Search(contents[] byte, query string, filename string) ([]Matches, error) {
 	
-	var results []string
+	var results []Matches
 	var count int = 0
 	for _, line := range strings.Split(string(contents), "\n") {
 		// fmt.Println("line: ", line)
 		if strings.Contains(line, query) {
-			line := fmt.Sprintf("%v:%v", count, strings.TrimSpace(line))
-			results = append(results, line)
+			// line := fmt.Sprintf("%v:%v", count, strings.TrimSpace(line))
+			match := Matches{LineNumber: count, FileName: filename, LineText: strings.TrimSpace(line)}
+			results = append(results, match)
 		}
 		count ++ 
 	}
@@ -139,18 +154,23 @@ func Search(contents[] byte, query string) ([]string, error) {
 	return results, nil
 }
 
-func CaseinSensitiveSearch(contents[] byte, query string) ([]string, error) { 
+func CaseinSensitiveSearch(contents[] byte, query string, filename string) ([]Matches, error) { 
 	
-	var results []string
-	var count int = 0
+	var results []Matches
+	var count int = 0 //line no
 	for _, line := range strings.Split(string(contents), "\n") {
-		// fmt.Println("line: ", line)
+		
 		lower_line := strings.ToLower(line)
 		lower_query := strings.ToLower(query)
-		line := fmt.Sprintf("%v: %v", count, strings.TrimSpace(line))
+
+		line := strings.TrimSpace(line) // Temp var to store unedited line
+		//assigning each line to preserve the unedited
+		
 		// fmt.Print("LINE: ", count)
 		if strings.Contains(lower_line, lower_query) {
-			results = append(results, line)
+
+			match := Matches{LineNumber: count, FileName: filename, LineText: strings.TrimSpace(line)} 
+			results = append(results, match)
 		}
 		count ++
 	}

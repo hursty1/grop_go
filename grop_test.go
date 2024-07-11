@@ -14,11 +14,12 @@ Duct tape.
 	`
 	query := "fast"
 	expected := []string{"safe, fast, productive."}
-	result, err := config.Search([]byte(contents), query)
+	result, err := config.Search([]byte(contents), query, "Filename")
 	if err != nil {
 		t.Fatalf("Expected no Error, got %v", err)
 	}
-	if !equal(result, expected) {
+	resultStr := []string{result[0].LineText}
+	if !equal(resultStr, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
 	}
 }
@@ -31,11 +32,12 @@ Duct tape.
 	`
 	query := "Fast"
 	expected := []string{}
-	result, err := config.CaseinSensitiveSearch([]byte(contents), query)
+	result, err := config.CaseinSensitiveSearch([]byte(contents), query, "Filename")
 	if err != nil {
 		t.Fatalf("Expected no Error, got %v", err)
 	}
-	if equal(result, expected) {
+	resultStr := []string{result[0].LineText}
+	if equal(resultStr, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
 	}
 }
@@ -48,11 +50,12 @@ Duct tape.
 	`
 	query := "Fast"
 	expected := []string{"safe, fast, productive."}
-	result, err := config.CaseinSensitiveSearch([]byte(contents), query)
+	result, err := config.CaseinSensitiveSearch([]byte(contents), query, "FILENAME")
 	if err != nil {
 		t.Fatalf("Expected no Error, got %v", err)
 	}
-	if !equal(result, expected) {
+	resultStr := []string{result[0].LineText}
+	if !equal(resultStr, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
 	}
 }
@@ -65,12 +68,13 @@ Duct tape.
 	`
 	query := "Rust"
 	expected := []string{}
-	result, err := config.Search([]byte(contents), query)
+	result, err := config.Search([]byte(contents), query, "filename")
 	
 	if err != nil {
 		t.Fatalf("Expected no Error, got %v", err)
 	}
-	if !equal(result, expected) {
+	resultStr := []string{result[0].LineText}
+	if !equal(resultStr, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
 	}
 }

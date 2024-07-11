@@ -12,11 +12,14 @@ func main() {
 	filename := flag.Bool("filename", false, "Print filename")
 	ignoreCase := flag.Bool("ignore-case", false, "Ignore case when searching")
 	recursive := flag.Bool("recursive", false, "Recursive directory searching")
+	linenumber := flag.Bool("linenumber", false, "Print the line Number")
 
 	//short hands
 	flag.BoolVar(ignoreCase, "i", false, "Ignore case when searching")
 	flag.BoolVar(filename, "f", false, "Print filename")
 	flag.BoolVar(recursive, "r", false, "Recursive directory searching")
+	flag.BoolVar(linenumber, "l", false, "Show Line Number")
+
 	args := os.Args[1:]
 	flags := []string{}
 	positional := []string{}
@@ -48,6 +51,7 @@ func main() {
 		IgnoreCase: *ignoreCase,
 		Filename:   *filename,
 		Recursive:  *recursive,
+		LineNumber: *linenumber,
 	}
 	var err error
 	configSetting, err := config.BuildConfig(configArgs)
