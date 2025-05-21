@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,6 +14,8 @@ type Args struct {
     Filename   bool
     Recursive  bool
 	LineNumber bool
+	IsPiped    bool
+	Scanner    *bufio.Scanner
 }
 type Config struct {
     Query      string
@@ -21,10 +24,16 @@ type Config struct {
     Filename   bool
     Recursive  bool
 	LineNumber bool
+	IsPiped    bool
+	Scanner    bufio.Scanner
 }
 
 
 func BuildConfig(args Args) (Config, error) {
+	var scanner bufio.Scanner
+	if args.Scanner != nil {
+		scanner = *args.Scanner
+	}
 	config := Config{
         Query:      args.Query,
         FilePath:   args.File,
@@ -32,6 +41,8 @@ func BuildConfig(args Args) (Config, error) {
         Filename:   args.Filename,
         Recursive:  args.Recursive,
 		LineNumber: args.LineNumber,
+		IsPiped: args.IsPiped,
+		Scanner: scanner,
     }
 	// fmt.Println(config)
     return config, nil
@@ -48,6 +59,12 @@ func Run(config Config) (error) {
 	var files [] string
 	var err error
 	var matches []string //slice
+	if config.IsPiped {
+		err := read_Stdin(config)
+		if err != nil {
+			return err
+		}
+	}
 	if config.Recursive {
 		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -84,6 +101,21 @@ func Run(config Config) (error) {
 	return nil
 }
 
+func read_Stdin(config Config) (error) {
+	// fmt.Printf("Scanner is working")
+	var lines []byte
+	for config.Scanner.Scan() {
+		// fmt.Println(config.Scanner.Text())
+		lines = append(lines, []byte(config.Scanner.Text()+"\n")...)
+	}
+	result, err := Search(lines, config.Query, "Piped")
+	if err != nil {
+		return err
+	}
+	get_results(result, config)
+	return nil
+}
+
 func read_results(files []string, config Config) (error) {
 	for _, file := range files {
 		var result []Matches
@@ -101,12 +133,7 @@ func read_results(files []string, config Config) (error) {
 			return err
 		}
 		get_results(result, config)
-
 	}
-
-
-	
-
 	return nil
 }
 

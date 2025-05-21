@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"grop/config"
@@ -31,18 +32,35 @@ func main() {
 			positional = append(positional, arg)
 		}
 	}
+	
+	//check is piped
+	fi, _ := os.Stdin.Stat()
+	isPiped := (fi.Mode() & os.ModeCharDevice) == 0
+
+	
 	// fmt.Println(flags)
 	// fmt.Println(positional)
+
 	// flag.Parse() //replaced by line below
 	flag.CommandLine.Parse(flags)
 	// Positional arguments
 	// args := flag.Args()
-	if len(args) < 2 {
+	var scanner *bufio.Scanner
+	// fmt.Println("Is Piped: ", isPiped)
+	query := ""
+	file := ""
+	if isPiped {
+		scanner = bufio.NewScanner(os.Stdin)
+		query = positional[0]
+
+	} else if len(args) < 2 {
 		fmt.Println("Usage: go run main.go <query> <file> [--ignore-case] [--filename] [--recursive]")
 		return
+	} else {
+		query = positional[0]
+		file = positional[1]
+
 	}
-	query := positional[0]
-	file := positional[1]
 	// fmt.Println(*filename)
 	
 	configArgs := config.Args{
@@ -52,6 +70,8 @@ func main() {
 		Filename:   *filename,
 		Recursive:  *recursive,
 		LineNumber: *linenumber,
+		IsPiped: isPiped,
+		Scanner: scanner,
 	}
 	var err error
 	configSetting, err := config.BuildConfig(configArgs)
@@ -66,7 +86,7 @@ func main() {
 	if err != nil{
 		fmt.Println("Error has occured. ", err)
 	}
-	// _ = errMain //debug
+
 
 	
 }
