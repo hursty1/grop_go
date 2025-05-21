@@ -144,7 +144,6 @@ func read_results(files []string, config Config) (error) {
 	return nil
 }
 func get_count_results(results []Matches){
-	// divide array into matching filenames
 	file_matches := make(map[string]int)
 
 	for _, result := range results {

@@ -47,14 +47,12 @@ func main() {
 	if isPiped {
 		scanner = bufio.NewScanner(os.Stdin)
 		query = positional[0]
-
 	} else if len(args) < 2 {
-		fmt.Println("Usage: go run main.go <query> <file> [--ignore-case] [--filename] [--recursive]")
+		fmt.Println("Usage: go run main.go <query> <file> [--ignore-case] [--filename] [--recursive] [--count]")
 		return
 	} else {
 		query = positional[0]
 		file = positional[1]
-
 	}
 	
 	configArgs := config.Args{
@@ -72,8 +70,7 @@ func main() {
 	configSetting, err := config.BuildConfig(configArgs)
 	if (err != nil) {
 		fmt.Println("Error Building Configuration.", err)
-		return
-		
+		return	
 	}
 
 	err = config.Run(configSetting)
@@ -81,7 +78,5 @@ func main() {
 		fmt.Println("Error Executing Specified build config", err)
 		return
 	}
-
-
 	
 }

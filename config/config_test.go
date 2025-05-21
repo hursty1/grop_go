@@ -26,3 +26,5 @@ func TestReadStdin(t *testing.T) {
 		t.Errorf("read_Stdin() failed: %v", err)
 	}
 }
+
+
