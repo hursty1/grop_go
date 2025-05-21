@@ -16,6 +16,7 @@ type Args struct {
 	LineNumber bool
 	IsPiped    bool
 	Scanner    *bufio.Scanner
+	Count	   bool
 }
 type Config struct {
     Query      string
@@ -25,14 +26,15 @@ type Config struct {
     Recursive  bool
 	LineNumber bool
 	IsPiped    bool
-	Scanner    bufio.Scanner
+	Scanner    *bufio.Scanner
+	Count 	   bool
 }
 
 
 func BuildConfig(args Args) (Config, error) {
-	var scanner bufio.Scanner
+	var scanner *bufio.Scanner
 	if args.Scanner != nil {
-		scanner = *args.Scanner
+		scanner = args.Scanner
 	}
 	config := Config{
         Query:      args.Query,
@@ -43,28 +45,33 @@ func BuildConfig(args Args) (Config, error) {
 		LineNumber: args.LineNumber,
 		IsPiped: args.IsPiped,
 		Scanner: scanner,
+		Count: args.Count,
     }
 	// fmt.Println(config)
     return config, nil
 }
 
 type Matches struct {
-	LineNumber int
-	FileName string
-	LineText string
+	LineNumber 	int
+	FileName 	string
+	LineText 	string
+	
 }
 
 func Run(config Config) (error) {
-	// path := config.FilePath
 	var files [] string
 	var err error
 	var matches []string //slice
+
+	//Data is from piped output 
 	if config.IsPiped {
 		err := read_Stdin(config)
 		if err != nil {
 			return err
 		}
 	}
+
+
 	if config.Recursive {
 		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -83,13 +90,13 @@ func Run(config Config) (error) {
 		if err != nil {
 			return err
 		}
-	} else {
+	} else { //matching only to current directory
 		matches, err = filepath.Glob(config.FilePath)
-
+		if err != nil {
+			return err
+		}
 	}
-	if err != nil {
-		return err
-	}
+	
 	files = append(files, matches...)
 
 	resultErr := read_results(files, config)
@@ -136,10 +143,32 @@ func read_results(files []string, config Config) (error) {
 	}
 	return nil
 }
+func get_count_results(results []Matches){
+	// divide array into matching filenames
+	file_matches := make(map[string]int)
+
+	for _, result := range results {
+		file_matches[result.FileName] += 1
+	}
+
+	for k, v := range file_matches {
+		fmt.Println(k, ": ", v)
+	}
+}
 
 func get_results(results []Matches, config Config){
+	//print count
+	if config.Count {
+		get_count_results(results)
+		
+		return
+	}
+
 	for _, line := range results {
 		// fmt.Println()
+
+		//print count
+
 		var start int
 		if config.IgnoreCase{
 			start = strings.Index(strings.ToLower(line.LineText), strings.ToLower(config.Query))
@@ -201,7 +230,7 @@ func CaseinSensitiveSearch(contents[] byte, query string, filename string) ([]Ma
 		}
 		count ++
 	}
-	
+	// results.Count = count
 
 	return results, nil
 }

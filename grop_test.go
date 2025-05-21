@@ -67,15 +67,13 @@ Pick three.
 Duct tape.
 	`
 	query := "Rust"
-	expected := []string{}
 	result, err := config.Search([]byte(contents), query, "filename")
 	
 	if err != nil {
 		t.Fatalf("Expected no Error, got %v", err)
 	}
-	resultStr := []string{result[0].LineText}
-	if !equal(resultStr, expected) {
-		t.Errorf("Expected %v, got %v", expected, result)
+	if len(result) != 0 {
+		t.Errorf("Expected no results, got %d result(s): %+v", len(result), result)
 	}
 }
 

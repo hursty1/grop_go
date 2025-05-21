@@ -14,12 +14,14 @@ func main() {
 	ignoreCase := flag.Bool("ignore-case", false, "Ignore case when searching")
 	recursive := flag.Bool("recursive", false, "Recursive directory searching")
 	linenumber := flag.Bool("linenumber", false, "Print the line Number")
-
+	count := flag.Bool("count", false, "Prints the count of matches in each file")
 	//short hands
 	flag.BoolVar(ignoreCase, "i", false, "Ignore case when searching")
 	flag.BoolVar(filename, "f", false, "Print filename")
 	flag.BoolVar(recursive, "r", false, "Recursive directory searching")
 	flag.BoolVar(linenumber, "l", false, "Show Line Number")
+	flag.BoolVar(count, "c", false, "Prints the number of matches in each file")
+
 
 	args := os.Args[1:]
 	flags := []string{}
@@ -33,20 +35,13 @@ func main() {
 		}
 	}
 	
-	//check is piped
 	fi, _ := os.Stdin.Stat()
 	isPiped := (fi.Mode() & os.ModeCharDevice) == 0
 
-	
-	// fmt.Println(flags)
-	// fmt.Println(positional)
-
-	// flag.Parse() //replaced by line below
 	flag.CommandLine.Parse(flags)
-	// Positional arguments
-	// args := flag.Args()
+
 	var scanner *bufio.Scanner
-	// fmt.Println("Is Piped: ", isPiped)
+
 	query := ""
 	file := ""
 	if isPiped {
@@ -61,7 +56,6 @@ func main() {
 		file = positional[1]
 
 	}
-	// fmt.Println(*filename)
 	
 	configArgs := config.Args{
 		Query:      query,
@@ -72,19 +66,20 @@ func main() {
 		LineNumber: *linenumber,
 		IsPiped: isPiped,
 		Scanner: scanner,
+		Count: *count,
 	}
 	var err error
 	configSetting, err := config.BuildConfig(configArgs)
-	// _, _ = configSetting, err
-
 	if (err != nil) {
-		fmt.Println("Error has occured. ", err)
+		fmt.Println("Error Building Configuration.", err)
 		return
+		
 	}
 
 	err = config.Run(configSetting)
 	if err != nil{
-		fmt.Println("Error has occured. ", err)
+		fmt.Println("Error Executing Specified build config", err)
+		return
 	}
 
 
