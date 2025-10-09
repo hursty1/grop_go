@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"grop/config"
 	"os"
 	"strings"
+
+	"github.com/hursty1/grop_go/internal"
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 	flags := []string{}
 	positional := []string{}
 	for _, arg := range args {
-		// fmt.Println(arg)
+		// fmt.Println(arg) //debug
 		if strings.HasPrefix(arg, "-") {
 			flags = append(flags, arg)
 		} else {
@@ -48,14 +49,14 @@ func main() {
 		scanner = bufio.NewScanner(os.Stdin)
 		query = positional[0]
 	} else if len(args) < 2 {
-		fmt.Println("Usage: go run main.go <query> <file> [--ignore-case] [--filename] [--recursive] [--count]")
+		fmt.Println("Usage: go run main.go <query> <file> [--ignore-case] [--filename] [--recursive] [--count] [--linenumber]")
 		return
-	} else {
+	} else { // assuming 2 positional
 		query = positional[0]
 		file = positional[1]
 	}
 	
-	configArgs := config.Args{
+	configArgs := internal.Args{
 		Query:      query,
 		File:       file,
 		IgnoreCase: *ignoreCase,
@@ -67,13 +68,13 @@ func main() {
 		Count: *count,
 	}
 	var err error
-	configSetting, err := config.BuildConfig(configArgs)
+	configSetting, err := internal.BuildConfig(configArgs)
 	if (err != nil) {
 		fmt.Println("Error Building Configuration.", err)
 		return	
 	}
 
-	err = config.Run(configSetting)
+	err = internal.Run(configSetting)
 	if err != nil{
 		fmt.Println("Error Executing Specified build config", err)
 		return

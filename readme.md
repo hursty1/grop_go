@@ -8,6 +8,9 @@ glob checking (*.txt or *.json)
 case senstive (or insenitive) -i
 Add Line number
 
+Pipeable 
+    windows: cat test.txt | grop test
+    linux: cat test.txt | grop test
 
 format grop.exe [options] <query> <file>
 

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"grop/config"
 	"testing"
+
+	"github.com/hursty1/grop_go/internal"
 )
 
 func TestSearch(t *testing.T) {
@@ -14,7 +15,7 @@ Duct tape.
 	`
 	query := "fast"
 	expected := []string{"safe, fast, productive."}
-	result, err := config.Search([]byte(contents), query, "Filename")
+	result, err := internal.Search([]byte(contents), query, "Filename")
 	if err != nil {
 		t.Fatalf("Expected no Error, got %v", err)
 	}
@@ -32,7 +33,7 @@ Duct tape.
 	`
 	query := "Fast"
 	expected := []string{}
-	result, err := config.CaseinSensitiveSearch([]byte(contents), query, "Filename")
+	result, err := internal.CaseinSensitiveSearch([]byte(contents), query, "Filename")
 	if err != nil {
 		t.Fatalf("Expected no Error, got %v", err)
 	}
@@ -50,7 +51,7 @@ Duct tape.
 	`
 	query := "Fast"
 	expected := []string{"safe, fast, productive."}
-	result, err := config.CaseinSensitiveSearch([]byte(contents), query, "FILENAME")
+	result, err := internal.CaseinSensitiveSearch([]byte(contents), query, "FILENAME")
 	if err != nil {
 		t.Fatalf("Expected no Error, got %v", err)
 	}
@@ -67,7 +68,7 @@ Pick three.
 Duct tape.
 	`
 	query := "Rust"
-	result, err := config.Search([]byte(contents), query, "filename")
+	result, err := internal.Search([]byte(contents), query, "filename")
 	
 	if err != nil {
 		t.Fatalf("Expected no Error, got %v", err)
