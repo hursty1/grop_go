@@ -1,6 +1,15 @@
 # GROP
 This is a learning project for go, creating a custom version of GREP for use on windows, or linux
 
+## Installing
+
+go install github.com/hursty1/grop_go@latest
+
+or
+
+go build
+and place the artifact in a folder exposed by path
+
 ## Features
 
 search text highlighting
