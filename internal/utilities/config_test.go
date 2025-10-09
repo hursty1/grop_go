@@ -1,4 +1,4 @@
-package internal
+package utilities
 
 import (
 	"bufio"
@@ -10,9 +10,9 @@ import (
 func TestReadStdin(t *testing.T) {
 	input := "TESTING \n new console output"
 	scanner := bufio.NewScanner(strings.NewReader(input))
-	config := Config{
+	config := Args{
 		Query:     "new",
-		FilePath:   "",
+		File:   "",
 		IgnoreCase: false,
 		Filename:   false,
 		Recursive:  false,

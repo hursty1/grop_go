@@ -1,4 +1,4 @@
-package internal
+package utilities
 
 import (
 	"bufio"
@@ -18,7 +18,9 @@ type Args struct {
 	Scanner    *bufio.Scanner
 	Count	   bool
 }
-type Config struct {
+
+//depercated
+type Config struct { 
     Query      string
     FilePath   string
     IgnoreCase bool
@@ -30,8 +32,8 @@ type Config struct {
 	Count 	   bool
 }
 
-
-func BuildConfig(args Args) (Config, error) {
+//depercated
+func BuildConfig(args Args) (Config, error) { 
 	var scanner *bufio.Scanner
 	if args.Scanner != nil {
 		scanner = args.Scanner
@@ -47,7 +49,6 @@ func BuildConfig(args Args) (Config, error) {
 		Scanner: scanner,
 		Count: args.Count,
     }
-	// fmt.Println(config)
     return config, nil
 }
 
@@ -58,7 +59,7 @@ type Matches struct {
 	
 }
 
-func Run(config Config) (error) {
+func Run(config Args) (error) {
 	var files [] string
 	var err error
 	var matches []string //slice
@@ -78,7 +79,7 @@ func Run(config Config) (error) {
 				return err
 			}
 			// Check if the file matches the pattern
-			match, err := filepath.Match(config.FilePath, filepath.Base(path))
+			match, err := filepath.Match(config.File, filepath.Base(path))
 			if err != nil {
 				return err
 			}
@@ -91,7 +92,7 @@ func Run(config Config) (error) {
 			return err
 		}
 	} else { //matching only to current directory
-		matches, err = filepath.Glob(config.FilePath)
+		matches, err = filepath.Glob(config.File)
 		if err != nil {
 			return err
 		}
@@ -108,7 +109,7 @@ func Run(config Config) (error) {
 	return nil
 }
 
-func read_Stdin(config Config) (error) {
+func read_Stdin(config Args) (error) {
 	// fmt.Printf("Scanner is working")
 	var lines []byte
 	for config.Scanner.Scan() {
@@ -123,7 +124,7 @@ func read_Stdin(config Config) (error) {
 	return nil
 }
 
-func read_results(files []string, config Config) (error) {
+func read_results(files []string, config Args) (error) {
 	for _, file := range files {
 		var result []Matches
 		var err error
@@ -155,7 +156,7 @@ func get_count_results(results []Matches){
 	}
 }
 
-func get_results(results []Matches, config Config){
+func get_results(results []Matches, config Args){
 	//print count
 	if config.Count {
 		get_count_results(results)
@@ -191,48 +192,6 @@ func get_results(results []Matches, config Config){
 	}
 }
 
-func Search(contents[] byte, query string, filename string) ([]Matches, error) {
-	
-	var results []Matches
-	var count int = 0
-	for _, line := range strings.Split(string(contents), "\n") {
-		// fmt.Println("line: ", line)
-		if strings.Contains(line, query) {
-			// line := fmt.Sprintf("%v:%v", count, strings.TrimSpace(line))
-			match := Matches{LineNumber: count, FileName: filename, LineText: strings.TrimSpace(line)}
-			results = append(results, match)
-		}
-		count ++ 
-	}
-	
-
-	return results, nil
-}
-
-func CaseinSensitiveSearch(contents[] byte, query string, filename string) ([]Matches, error) { 
-	
-	var results []Matches
-	var count int = 0 //line no
-	for _, line := range strings.Split(string(contents), "\n") {
-		
-		lower_line := strings.ToLower(line)
-		lower_query := strings.ToLower(query)
-
-		line := strings.TrimSpace(line) // Temp var to store unedited line
-		//assigning each line to preserve the unedited
-		
-		// fmt.Print("LINE: ", count)
-		if strings.Contains(lower_line, lower_query) {
-
-			match := Matches{LineNumber: count, FileName: filename, LineText: strings.TrimSpace(line)} 
-			results = append(results, match)
-		}
-		count ++
-	}
-	// results.Count = count
-
-	return results, nil
-}
 
 
 

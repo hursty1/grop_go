@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hursty1/grop_go/internal"
+	"github.com/hursty1/grop_go/internal/utilities"
 )
 
 func main() {
@@ -56,7 +56,7 @@ func main() {
 		file = positional[1]
 	}
 	
-	configArgs := internal.Args{
+	configArgs := utilities.Args{
 		Query:      query,
 		File:       file,
 		IgnoreCase: *ignoreCase,
@@ -67,14 +67,8 @@ func main() {
 		Scanner: scanner,
 		Count: *count,
 	}
-	var err error
-	configSetting, err := internal.BuildConfig(configArgs)
-	if (err != nil) {
-		fmt.Println("Error Building Configuration.", err)
-		return	
-	}
 
-	err = internal.Run(configSetting)
+	err := utilities.Run(configArgs)
 	if err != nil{
 		fmt.Println("Error Executing Specified build config", err)
 		return

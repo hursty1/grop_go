@@ -3,7 +3,7 @@ This is a learning project for go, creating a custom version of GREP for use on 
 
 ## Installing
 
-go install github.com/hursty1/grop_go@latest
+go install github.com/hursty1/grop_go/cmd/grop@latest
 
 or
 
