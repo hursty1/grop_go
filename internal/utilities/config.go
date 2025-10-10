@@ -73,13 +73,6 @@ func crawl_files(config Args) (error) {
 	var allMatches []Matches
 	match_results := make(chan []Matches)
 	
-	// collectDone := make(chan struct{})
-	// go func() {
-	// 	for res := range match_results {
-	// 		allMatches = append(allMatches, res...)
-	// 	}
-	// 	close(collectDone)
-	// }()
 	done := make(chan struct{})
 	go func() {
 		
@@ -105,8 +98,7 @@ func crawl_files(config Args) (error) {
 	wg.Wait()
 	close(match_results)
 	<- done
-	// <-collectDone
-	//print results
+
 	print_results(allMatches, config)
 
 	return nil
