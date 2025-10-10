@@ -3,9 +3,11 @@ package utilities
 import (
 	"bufio"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 type Args struct {
     Query      string
@@ -60,9 +62,9 @@ type Matches struct {
 }
 
 func Run(config Args) (error) {
-	var files [] string
+	// var files [] string
 	var err error
-	var matches []string //slice
+	// var matches []string //slice
 
 	//Data is from piped output 
 	if config.IsPiped {
@@ -72,43 +74,132 @@ func Run(config Args) (error) {
 		}
 	}
 
-
-	if config.Recursive {
-		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-			// Check if the file matches the pattern
-			match, err := filepath.Match(config.File, filepath.Base(path))
-			if err != nil {
-				return err
-			}
-			if match {
-				files = append(files, path)
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	} else { //matching only to current directory
-		matches, err = filepath.Glob(config.File)
-		if err != nil {
-			return err
-		}
+	err = crawl_files(config)
+	if err != nil {
+		return err
 	}
+	// if config.Recursive {
+	// 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 		// Check if the file matches the pattern
+	// 		match, err := filepath.Match(config.File, filepath.Base(path))
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 		if match {
+	// 			files = append(files, path)
+	// 		}
+	// 		return nil
+	// 	})
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// } else { //matching only to current directory
+	// 	matches, err = filepath.Glob(config.File)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	
-	files = append(files, matches...)
+	// files = append(files, matches...)
 
-	resultErr := read_results(files, config)
-	if resultErr != nil{
-		fmt.Println(resultErr)
-		return resultErr
-	}
+	// resultErr := read_results(files, config)
+	// if resultErr != nil{
+	// 	fmt.Println(resultErr)
+	// 	return resultErr
+	// }
 	// fmt.Println(files)
 	return nil
 }
 
+func crawl_files(config Args) (error) {
+	// matches := []string{}
+	file_que := make(chan string)
+	go func() {
+		err := filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
+			if !d.IsDir() {
+				//  //if not directory send filepath to files slice
+				// Check if the file matches the pattern
+				match, err := filepath.Match(config.File, filepath.Base(path))
+				if err != nil {
+					return err
+				}
+				if match {
+					file_que <- path
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			fmt.Printf("Failed to walk %s\n",err)
+		}
+		close(file_que)
+	}()
+	var allMatches []Matches
+	match_results := make(chan []Matches)
+	collectDone := make(chan struct{})
+	
+	go func() {
+		for res := range match_results {
+			allMatches = append(allMatches, res...)
+		}
+		close(collectDone)
+	}()
+
+	
+	wg := sync.WaitGroup{}
+	for f := range file_que{
+		wg.Add(1)
+		go func(file string) {
+			defer wg.Done()
+			result, err := processFile(file, config)
+			if err != nil {
+				fmt.Printf("Error: %s\n", err)
+			}
+			match_results <- result
+		}(f)
+	}
+	wg.Wait()
+	close(match_results)
+	<-collectDone
+	//print results
+	print_results(allMatches, config)
+
+	return nil
+}
+
+func processFile(file_path string, config Args) ([]Matches, error) {
+	
+	results, err := read_result(file_path, config)
+	if err != nil {
+		return []Matches{}, err
+	}
+	return results, nil
+}
+
+func read_result(file string, config Args) ([]Matches, error) {
+	//Read file and return a slice of Matches
+	var result []Matches
+	contents, err := os.ReadFile(file)
+	if err != nil {
+		return result, err
+	}
+	if config.IgnoreCase {
+		result, err = CaseinSensitiveSearch(contents, config.Query, file)
+	} else {
+		result, err = Search(contents, config.Query, file)
+	}
+	if err != nil{
+		return result, err
+	}
+	return result, nil
+}
+
+func print_results(matches []Matches, config Args) {
+	get_results(matches, config)
+}
 func read_Stdin(config Args) (error) {
 	// fmt.Printf("Scanner is working")
 	var lines []byte
