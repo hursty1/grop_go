@@ -134,6 +134,7 @@ func read_result(file string, config Args) ([]Matches, error) {
 func print_results(matches []Matches, config Args) {
 	get_results(matches, config)
 }
+
 func read_Stdin(config Args) (error) {
 	// fmt.Printf("Scanner is working")
 	var lines []byte
@@ -171,9 +172,6 @@ func get_results(results []Matches, config Args){
 	}
 
 	for _, line := range results {
-		// fmt.Println()
-
-		//print count
 
 		var start int
 		if config.IgnoreCase{
@@ -186,19 +184,17 @@ func get_results(results []Matches, config Args){
 		before := line.LineText[:start]
 		match := line.LineText[start : start+len(config.Query)]
 		after := line.LineText[start+len(config.Query):]
+		
 		if config.Filename{
 			fmt.Print(line.FileName + ":")
 		}
+		
 		if (config.LineNumber){
 			// fmt.Print(string(line.LineNumber) + ":")
-			fmt.Printf("%v:", line.LineNumber)
+			fmt.Printf("%v:\t", line.LineNumber)
 		}
+		
 		fmt.Print(before + Green + match + Reset + after)
 		fmt.Println("")
 	}
 }
-
-
-
-
-
