@@ -21,39 +21,6 @@ type Args struct {
 	Count	   bool
 }
 
-//depercated
-type Config struct { 
-    Query      string
-    FilePath   string
-    IgnoreCase bool
-    Filename   bool
-    Recursive  bool
-	LineNumber bool
-	IsPiped    bool
-	Scanner    *bufio.Scanner
-	Count 	   bool
-}
-
-//depercated
-func BuildConfig(args Args) (Config, error) { 
-	var scanner *bufio.Scanner
-	if args.Scanner != nil {
-		scanner = args.Scanner
-	}
-	config := Config{
-        Query:      args.Query,
-        FilePath:   args.File,
-        IgnoreCase: args.IgnoreCase,
-        Filename:   args.Filename,
-        Recursive:  args.Recursive,
-		LineNumber: args.LineNumber,
-		IsPiped: args.IsPiped,
-		Scanner: scanner,
-		Count: args.Count,
-    }
-    return config, nil
-}
-
 type Matches struct {
 	LineNumber 	int
 	FileName 	string
@@ -62,10 +29,7 @@ type Matches struct {
 }
 
 func Run(config Args) (error) {
-	// var files [] string
 	var err error
-	// var matches []string //slice
-
 	//Data is from piped output 
 	if config.IsPiped {
 		err := read_Stdin(config)
@@ -78,54 +42,23 @@ func Run(config Args) (error) {
 	if err != nil {
 		return err
 	}
-	// if config.Recursive {
-	// 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		// Check if the file matches the pattern
-	// 		match, err := filepath.Match(config.File, filepath.Base(path))
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		if match {
-	// 			files = append(files, path)
-	// 		}
-	// 		return nil
-	// 	})
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// } else { //matching only to current directory
-	// 	matches, err = filepath.Glob(config.File)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
-	
-	// files = append(files, matches...)
 
-	// resultErr := read_results(files, config)
-	// if resultErr != nil{
-	// 	fmt.Println(resultErr)
-	// 	return resultErr
-	// }
-	// fmt.Println(files)
 	return nil
 }
 
 func crawl_files(config Args) (error) {
-	// matches := []string{}
+
 	file_que := make(chan string)
 	go func() {
 		err := filepath.WalkDir(".", func(path string, d fs.DirEntry, err error) error {
-			if !d.IsDir() {
-				//  //if not directory send filepath to files slice
+			if !d.IsDir() {//if not directory send filepath to files slice
+				
 				// Check if the file matches the pattern
 				match, err := filepath.Match(config.File, filepath.Base(path))
 				if err != nil {
 					return err
 				}
+
 				if match {
 					file_que <- path
 				}
@@ -139,17 +72,25 @@ func crawl_files(config Args) (error) {
 	}()
 	var allMatches []Matches
 	match_results := make(chan []Matches)
-	collectDone := make(chan struct{})
 	
+	// collectDone := make(chan struct{})
+	// go func() {
+	// 	for res := range match_results {
+	// 		allMatches = append(allMatches, res...)
+	// 	}
+	// 	close(collectDone)
+	// }()
+	done := make(chan struct{})
 	go func() {
-		for res := range match_results {
-			allMatches = append(allMatches, res...)
+		
+		for match := range match_results {
+			print_results(match, config)
 		}
-		close(collectDone)
+		close(done)
 	}()
-
 	
 	wg := sync.WaitGroup{}
+	
 	for f := range file_que{
 		wg.Add(1)
 		go func(file string) {
@@ -163,7 +104,8 @@ func crawl_files(config Args) (error) {
 	}
 	wg.Wait()
 	close(match_results)
-	<-collectDone
+	<- done
+	// <-collectDone
 	//print results
 	print_results(allMatches, config)
 
@@ -215,26 +157,7 @@ func read_Stdin(config Args) (error) {
 	return nil
 }
 
-func read_results(files []string, config Args) (error) {
-	for _, file := range files {
-		var result []Matches
-		var err error
-		contents, err := os.ReadFile(file)
-		if err != nil {
-			return err
-		}
-		if config.IgnoreCase {
-			result, err = CaseinSensitiveSearch(contents, config.Query, file)
-		} else {
-			result, err = Search(contents, config.Query, file)
-		}
-		if err != nil{
-			return err
-		}
-		get_results(result, config)
-	}
-	return nil
-}
+
 func get_count_results(results []Matches){
 	file_matches := make(map[string]int)
 
@@ -276,7 +199,7 @@ func get_results(results []Matches, config Args){
 		}
 		if (config.LineNumber){
 			// fmt.Print(string(line.LineNumber) + ":")
-			fmt.Print(fmt.Sprintf("%v:", line.LineNumber))
+			fmt.Printf("%v:", line.LineNumber)
 		}
 		fmt.Print(before + Green + match + Reset + after)
 		fmt.Println("")
